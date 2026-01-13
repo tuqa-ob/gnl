@@ -3,24 +3,29 @@
 static char	*read_and_stash(int fd, char *stash)
 {
 	int		bytes;
-	char	buffer[BUFFER_SIZE + 1];
+	char	*buffer;
 	char	*tmp;
 
+	buffer = malloc(BUFFER_SIZE + 1);
+	if (!buffer)
+		return (NULL);
 	bytes = 1;
-	while (!ft_strchr(stash, '\n') && bytes > 0)
+	while (!ft_strchr(stash, '\n') && bytes != 0)
 	{
 		bytes = read(fd, buffer, BUFFER_SIZE);
-		if (bytes < 0)
+		if (bytes == -1)
 		{
+			free(buffer);
 			free(stash);
 			return (NULL);
 		}
 		buffer[bytes] = '\0';
 		tmp = ft_strjoin(stash, buffer);
 		if (!tmp)
-			return (NULL);
+			return (free(buffer), NULL);
 		stash = tmp;
 	}
+	free(buffer);
 	return (stash);
 }
 
@@ -55,6 +60,8 @@ static char	*clean_stash(char *stash)
 	}
 	tmp = ft_substr(stash, i + 1, ft_strlen(stash) - i - 1);
 	free(stash);
+	if (!tmp)
+		return (NULL);
 	return (tmp);
 }
 
@@ -69,6 +76,12 @@ char	*get_next_line(int fd)
 	if (!stash)
 		return (NULL);
 	line = extract_line(stash);
+	if (!line)
+	{
+		free(stash);
+		stash = NULL;
+		return (NULL);
+	}
 	stash = clean_stash(stash);
 	return (line);
 }
